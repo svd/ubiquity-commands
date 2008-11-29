@@ -123,14 +123,26 @@ Nozbe.loadNozbeContexts = function(callback) {
     callback(contexts);
 }
 
+Nozbe.toggleTaskStatus = function() {
+  alert ("[toggleTaskStatus]");
+//  displayMessage("Toggle task: " + taskId);
+}
+  
 Nozbe.renderTask = function (task) {
   var result = "";
   var style="";
 
+  result = result + "<input type='checkbox' id='" + task.id + "'";
   if (task.done == 1) {
     style = "text-decoration: line-through; color:#aaaaaa;";
+    result = result + " checked='true'";
   }
+  result = result + " onchange='alert(\"elem: \" + this);'";
+  result = result + "/>";
+    
+  result = result + "<label id='lbl-" + task.id + "' for='" + task.id + "'>";
   result = result + "<span style='"+style+"'>" + task.name + "</span>";
+  result = result + "</label>";
 
   result = result + "<font size='-2'>";
   if (task.project_name) {
@@ -199,7 +211,7 @@ noun_nozbe_context = {
 }
 
 CmdUtils.CreateCommand({
-    name: "nozbe",
+    name: "nozbe-add",
     takes: {
         action: noun_arb_text
     },
@@ -289,7 +301,7 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe-list",
+  name: "nozbe",
 /*  icon: "http://example.com/example.png",
   homepage: "http://example.com/", */
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
