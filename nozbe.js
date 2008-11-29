@@ -26,6 +26,8 @@ parameters for newaction
 
 Nozbe.PREF_API_KEY = "nozbe.api.key";
 
+Nozbe.PREVIEW_COMMAND_LIMIT = 10;
+
 Nozbe._projects = null;
 Nozbe._contexts = null;
 
@@ -45,7 +47,7 @@ Nozbe.buildUrl = function(url, params) {
   //displayMessage("Build url: " + url);
   return url;
 }
- 
+  
 Nozbe.callNozbeAPI = function(url, params) {
   //url = Nozbe.authorizeNozbeURL(url);
   if (!params) {
@@ -127,18 +129,27 @@ Nozbe.toggleTaskStatus = function() {
   alert ("[toggleTaskStatus]");
 //  displayMessage("Toggle task: " + taskId);
 }
-  
+
+Nozbe.URL_ACTION = "http://img.nozbe.com/action.png";
+Nozbe.URL_ACTION_NEXT = "http://img.nozbe.com/action-next.png";
+
 Nozbe.renderTask = function (task) {
   var result = "";
   var style="";
 
-  result = result + "<input type='checkbox' id='" + task.id + "'";
+  result = result + "<input type='checkbox' disabled='disabled' id='" + task.id + "'";
   if (task.done == 1) {
     style = "text-decoration: line-through; color:#aaaaaa;";
     result = result + " checked='true'";
   }
-  result = result + " onchange='alert(\"elem: \" + this);'";
+  result = result + " onchange='alert(\"elem: \" + document);'";
   result = result + "/>";
+
+  if (task.next) {
+    result = result + "<img src='http://img.nozbe.com/action-next.png'/>";
+  } else {
+    result = result + "<img src='http://img.nozbe.com/action.png'/>"
+  }
     
   result = result + "<label id='lbl-" + task.id + "' for='" + task.id + "'>";
   result = result + "<span style='"+style+"'>" + task.name + "</span>";
@@ -179,7 +190,7 @@ noun_nozbe_project = {
         var p = noun_nozbe_project._projects;
         for (var i in p) {
             if (p[i].name.match(text, "i")) {
-                suggestions.push(CmdUtils.makeSugg(p[i].name, null, p[i].id));
+                suggestions.push(CmdUtils.makeSugg(p[i].name + " (" + p[i].count + ")", null, p[i].id));
             }
         }
         return suggestions.splice(0, 15);
@@ -203,7 +214,7 @@ noun_nozbe_context = {
         var c = noun_nozbe_project._contexts;
         for (var i in c) {
             if (c[i].name.match(text, "i")) {
-                suggestions.push(CmdUtils.makeSugg(c[i].name, null, c[i].id));
+                suggestions.push(CmdUtils.makeSugg(c[i].name + " (" + c[i].count + ")", null, c[i].id));
             }
         }
         return suggestions.splice(0, 15);
@@ -226,6 +237,7 @@ CmdUtils.CreateCommand({
     },
     license: "GPL",
     description: "Adds a task to your nozbe account",
+    icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
     _urls: Nozbe.NOZBE_URLS,
 
@@ -288,6 +300,7 @@ CmdUtils.CreateCommand({
     license: "GPL",
     description: "Set your Nozbe API key. Check your key at http://www.nozbe.com/account/extras",
     help: "Type nozbe-setkey . Check your key at http://www.nozbe.com/account/extras",
+    icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
     execute: function(key) {
         if (key.text.length < 1) {
@@ -302,12 +315,12 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe",
-/*  icon: "http://example.com/example.png",
-  homepage: "http://example.com/", */
+/*  homepage: "http://example.com/", */
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "Get list of next actions from Nozbe",
   help: "Type nozbe-list to get list of next actions",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
   takes: {"filter": noun_arb_text},
   modifiers: {
@@ -318,45 +331,72 @@ CmdUtils.CreateCommand({
   preview: function( pblock, input, mods) {
     //var template = "${title}\n${actions}";
     var style = "style='background: #ddddff; color:black;'";
-    var template = "<div " + style + "><b>${title}</b>\n<font><div>${actions}</div></font></div>";
-    var params = {title:"", actions:"No actions found"};
+    var template = "<div " + style + "><b>${title}</b>\n<div><font>${actions}</font></div><div>${more}</div></div>";
+    var params = {title:"", actions:"No actions found", more:"", link:""};
     var actions = {};
     var data = "";
-    var dataDone = "";
+    var dataDone = [];
+    var cmds = 0;
     
-    var proj = "";
+    //var proj = "";
     var modProject = mods["in"];
     var modContext = mods["at"];
 
     if (modProject && modProject.data) {
-      params["title"] = "Actions in project: " + modProject.text;
+      params["link"] = "http://www.nozbe.com/account/projects/show-" + modProject.data ;
+      params["title"] = "Actions in project: "
+        + "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
+        + modProject.text + "</a>";
       actions = Nozbe.getTasksInProject(modProject.data);
     } else if (modContext && modContext.data) {
-      params["title"] = "Actions in context: " + modContext.text;
+      params["link"] = "http://www.nozbe.com/account/contexts/show-" + modContext.data ;
+      params["title"] = "Actions in context: "
+        + "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
+        + modContext.text + "</a>";
       actions = Nozbe.getTasksInContext(modContext.data);
     } else {
-      params["title"] = "Next actions:";
+      params["link"] = "http://www.nozbe.com/account/next";
+      params["title"] = "<a style='text-decoration: underline;' href='"
+        + params["link"] + "'>Next actions</a>:";
       actions = Nozbe.getNextActions();
     }
     for (var i in actions) {
       var a = actions[i];
-      var text = "";
+      var text = Nozbe.renderTask(a);
       if (input.text.length > 0) {
         if (a.name.match(input.text, "i")) {
-          text = Nozbe.renderTask(a);
+          if (a.done == 1) {
+            dataDone[dataDone.length] = "<div>" + text + "</div>";
+          } else {
+            data = data + "<div>" + text + "</div>";
+            cmds += 1;
+          }
         }
       } else {
-        text = Nozbe.renderTask(a);
+        if (a.done == 1) {
+          dataDone[dataDone.length] = "<div>" + text + "</div>";
+        } else {
+          data = data + "<div>" + text + "</div>";
+          cmds += 1;
+        }
       }
-      if (a.done == 1) {
-        dataDone = dataDone + "<div>" + text + "</div>";
-      } else {
-        data = data + "<div>" + text + "</div>";
+      if (cmds >= Nozbe.PREVIEW_COMMAND_LIMIT) {
+        break;
       }
     }
-    data = data + dataDone;
+    //data = data + dataDone;
+    for (var i in dataDone) {
+      if (cmds >= Nozbe.PREVIEW_COMMAND_LIMIT) {
+        break;
+      }
+      data += dataDone[i];
+      cmds += 1;
+    }
     if (data) {
       params["actions"] = data;
+    }
+    if (cmds < actions.length) {
+      params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
     }
     pblock.innerHTML = CmdUtils.renderTemplate(template, params);
   },
