@@ -12,16 +12,14 @@ parameters for newaction
 - time - time in minutes (action only, values: 5,15,30,60,90,120,180...)
 - next - if sent, action will be added to "next actions" list
 */
-    newaction: "http://www.nozbe.com/api/newaction",
+  newaction: "http://www.nozbe.com/api/newaction",
 
-  /*
-  Parameters for what-next: none
-  */
   whatnext: "http://www.nozbe.com/api/actions/what-next",
   whatproject: "http://www.nozbe.com/api/actions/what-project",
   whatcontext: "http://www.nozbe.com/api/actions/what-context",
   newnote: "http://www.nozbe.com/api/newnote/name-test/body-test/project_id-c4ca1/context_id-c4ca1/key-",
-  contexts: "http://www.nozbe.com/api/contexts"
+  contexts: "http://www.nozbe.com/api/contexts",
+  check: "http://www.nozbe.com/api/check"
 };
 
 Nozbe.PREF_API_KEY = "nozbe.api.key";
@@ -54,7 +52,6 @@ Nozbe.callNozbeAPI = function(url, params) {
     params = {};
   }
   params["key"] = Nozbe.getAPIKey();
-
   url = Nozbe.buildUrl(url,params);
 
     var result = null;
@@ -74,11 +71,12 @@ Nozbe.callNozbeAPI = function(url, params) {
 }
 
 Nozbe.getProjects = function() {
-    if (Nozbe._projects == null) {
-        Nozbe._projects = Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.projects);
-//displayMessage("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
-    }
-    return Nozbe._projects;
+  if (Nozbe._projects == null) {
+    Nozbe._projects = Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.projects);
+    //CmdUtils.log("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
+    displayMessage("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
+  }
+  return Nozbe._projects;
 }
 
 Nozbe.getContexts = function() {
@@ -137,12 +135,31 @@ Nozbe.renderTask = function (task) {
   var result = "";
   var style="";
 
-  result = result + "<input type='checkbox' disabled='disabled' id='" + task.id + "'";
+  var lblId = "lbl-"+task.id;
+  result = result + "<input type='checkbox' id='" + task.id + "'";
   if (task.done == 1) {
     style = "text-decoration: line-through; color:#aaaaaa;";
-    result = result + " checked='true'";
+    result = result + " checked='true' disabled='true'";
   }
-  result = result + " onchange='alert(\"elem: \" + document);'";
+  var checkUrl = Nozbe.NOZBE_URLS.check
+      + "/ids-" + task.id
+      + "/key-" + Nozbe.getAPIKey();
+  var onChangeJS = "javascript:var r=new XMLHttpRequest();"
+      + "r.onreadystatechange=function(){"
+//      + ""
+      +   "if(r.readyState  == 4){"
+      +     "if(r.status  == 200){"
+      +       "var e=document.getElementById(\""+lblId+"\");"
+      +       "e.style.color=\"#aaaaaa\";e.style.textDecoration=\"line-through\";"
+      +     "}"
+      +   "}"
+      + "};"
+      + "e=document.getElementById(\""+task.id+"\");e.disabled=\"true\";"      
+      + "r.open(\"GET\", \""+ checkUrl +"\", true);"
+      + "r.send(null);"
+      ;
+  
+  result = result + " onchange='" + onChangeJS + "'";
   result = result + "/>";
 
   if (task.next) {
@@ -151,7 +168,7 @@ Nozbe.renderTask = function (task) {
     result = result + "<img src='http://img.nozbe.com/action.png'/>"
   }
     
-  result = result + "<label id='lbl-" + task.id + "' for='" + task.id + "'>";
+  result = result + "<label id='" + lblId + "' for='" + task.id + "'>";
   result = result + "<span style='"+style+"'>" + task.name + "</span>";
   result = result + "</label>";
 
@@ -159,12 +176,11 @@ Nozbe.renderTask = function (task) {
   if (task.project_name) {
     result = result + "<font color='grey'> [" + task.project_name + "]</font>";
   }
-  if (task.context_icon) {
-    result = result + " <img src='http://img.nozbe.com/" + task.context_icon + "'>";
-    if (task.context_name) {
-      result = result + "<font color='green'> @" + task.context_name + "</font>";
-    }
-    result = result + "</img>";
+//  if (task.context_icon) {
+//    result = result + " <img src='http://img.nozbe.com/" + task.context_icon + "'/>";
+//  }
+  if (task.context_name) {
+    result = result + "<font color='green'> @" + task.context_name + "</font>";
   }
   if (task.time && task.time > 0) {
     result = result + " <font color='blue'>(" + task.time + " min)</font>";
@@ -256,10 +272,6 @@ CmdUtils.CreateCommand({
             displayMessage("Nozbe requires a task to be entered");
             return;
         }
-//displayMessage("Adding action " + statusText.text
-//+ " to "  + mods.to.text + ":" + mods.to.data
-//+" at " + mods.at.text + ":" + mods.at.data);
-
           
         var updateUrl = this._urls.newaction;
         updateUrl = updateUrl + "/name-" + encodeURIComponent(statusText.text);
@@ -314,7 +326,7 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe",
+  name: "nozbe-list",
 /*  homepage: "http://example.com/", */
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
@@ -331,7 +343,18 @@ CmdUtils.CreateCommand({
   preview: function( pblock, input, mods) {
     //var template = "${title}\n${actions}";
     var style = "style='background: #ddddff; color:black;'";
-    var template = "<div " + style + "><b>${title}</b>\n<div><font>${actions}</font></div><div>${more}</div></div>";
+    var JS="<html><head>"
+        + "<script type=\"text/javascript\">\n"
+        + "<!-- \n"
+        + "function toggleTask(taskId) {"
+        + "  alert(taskId);"
+        + "}\n"
+        + "//alert(\"JS available\");"
+        + "//-->\n"
+        + "</script></head><body>"
+        + "<div>Test section: <input type='checkbox' onchange='toggleTask(\"TEST!!!\")'/></div>";
+    var template = JS + "<div " + style + "><b>${title}</b><div><font>${actions}</font></div><div>${more}</div></div>"
+        + "</body></html>";
     var params = {title:"", actions:"No actions found", more:"", link:""};
     var actions = {};
     var data = "";
@@ -399,9 +422,31 @@ CmdUtils.CreateCommand({
       params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
     }
     pblock.innerHTML = CmdUtils.renderTemplate(template, params);
+    //pblock.innerHTML = CmdUtils.renderTemplate({file:"file://templates/nozbe-list.html"}, params);
   },
   execute: function(input) {
     CmdUtils.setSelection("You selected: "+input.html);
   }
 });
 
+
+/* This is a template command */
+CmdUtils.CreateCommand({
+  name: "nozbe-reset",
+  author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
+  license: "GPL",
+  description: "Clear cached lists of projects and contexts. This will force projects and contexts to be reloaded next time.",
+  help: "Type nozbe-reset to clear caches",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+  /*takes: {"input": noun_arb_text},*/
+  preview: function( pblock, input ) {
+    var template = "Hello ${name}";
+    pblock.innerHTML = CmdUtils.renderTemplate(template, {"name": "World!"});
+  },
+  execute: function(input) {
+    Nozbe._projects = null;
+    Nozbe._contexts = null;
+    displayMessage("Nozbe: cache reset");
+  }
+});
