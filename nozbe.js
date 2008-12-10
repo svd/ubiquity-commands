@@ -123,11 +123,6 @@ Nozbe.loadNozbeContexts = function(callback) {
     callback(contexts);
 }
 
-Nozbe.toggleTaskStatus = function() {
-  alert ("[toggleTaskStatus]");
-//  displayMessage("Toggle task: " + taskId);
-}
-
 Nozbe.URL_ACTION = "http://img.nozbe.com/action.png";
 Nozbe.URL_ACTION_NEXT = "http://img.nozbe.com/action-next.png";
 
@@ -146,7 +141,6 @@ Nozbe.renderTask = function (task) {
       + "/key-" + Nozbe.getAPIKey();
   var onChangeJS = "javascript:var r=new XMLHttpRequest();"
       + "r.onreadystatechange=function(){"
-//      + ""
       +   "if(r.readyState  == 4){"
       +     "if(r.status  == 200){"
       +       "var e=document.getElementById(\""+lblId+"\");"
@@ -341,19 +335,8 @@ CmdUtils.CreateCommand({
   },
 
   preview: function( pblock, input, mods) {
-    //var template = "${title}\n${actions}";
     var style = "style='background: #ddddff; color:black;'";
-    var JS="<html><head>"
-        + "<script type=\"text/javascript\">\n"
-        + "<!-- \n"
-        + "function toggleTask(taskId) {"
-        + "  alert(taskId);"
-        + "}\n"
-        + "//alert(\"JS available\");"
-        + "//-->\n"
-        + "</script></head><body>"
-        + "<div>Test section: <input type='checkbox' onchange='toggleTask(\"TEST!!!\")'/></div>";
-    var template = JS + "<div " + style + "><b>${title}</b><div><font>${actions}</font></div><div>${more}</div></div>"
+    var template = "<div " + style + "><b>${title}</b><div><font>${actions}</font></div><div>${more}</div></div>"
         + "</body></html>";
     var params = {title:"", actions:"No actions found", more:"", link:""};
     var actions = {};
@@ -361,7 +344,6 @@ CmdUtils.CreateCommand({
     var dataDone = [];
     var cmds = 0;
     
-    //var proj = "";
     var modProject = mods["in"];
     var modContext = mods["at"];
 
@@ -407,7 +389,6 @@ CmdUtils.CreateCommand({
         break;
       }
     }
-    //data = data + dataDone;
     for (var i in dataDone) {
       if (cmds >= Nozbe.PREVIEW_COMMAND_LIMIT) {
         break;
@@ -421,16 +402,15 @@ CmdUtils.CreateCommand({
     if (cmds < actions.length) {
       params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
     }
-    pblock.innerHTML = CmdUtils.renderTemplate(template, params);
-    //pblock.innerHTML = CmdUtils.renderTemplate({file:"file://templates/nozbe-list.html"}, params);
+    var html = CmdUtils.renderTemplate(template, params);
+    //Utils.reportWarning("Rendered template:" + html);
+    pblock.innerHTML = html
   },
   execute: function(input) {
     CmdUtils.setSelection("You selected: "+input.html);
   }
 });
 
-
-/* This is a template command */
 CmdUtils.CreateCommand({
   name: "nozbe-reset",
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
@@ -441,8 +421,8 @@ CmdUtils.CreateCommand({
 
   /*takes: {"input": noun_arb_text},*/
   preview: function( pblock, input ) {
-    var template = "Hello ${name}";
-    pblock.innerHTML = CmdUtils.renderTemplate(template, {"name": "World!"});
+    var template = "Clear cached lists of projects and contexts.";
+    pblock.innerHTML = CmdUtils.renderTemplate(template, {});
   },
   execute: function(input) {
     Nozbe._projects = null;
