@@ -1,0 +1,44 @@
+<html>
+<head>
+<style type="text/css">
+.content { background: #ddddff; color:black; }
+.title { font-weight: bolder; }
+.actions {}
+.more {font-size: smaller;}
+
+.task {
+}
+.task-done {
+  text-decoration: line-through; 
+  color:#aaaaaa;
+}
+.project {
+color: grey;
+font-size: smaller;
+}
+.context {
+color: green;
+font-size: smaller;
+}
+.time {
+color: blue;
+font-size: smaller;
+}
+</style>
+<script type="text/javascript">
+<!--
+function toggleTask(taskId) {
+  alert(taskId);
+}
+//-->
+</script>
+</head>
+<body>
+<div>Test section: <input type='checkbox' onchange='toggleTask("TEST!!!")'/></div>
+<div class='content'>
+  <span class='title' id='title'>${title}</span>
+  <div class='actions' id='actions'>${actions}</div>
+  <div class='more' id='more'>${more}</div>
+</div>
+</body>
+</html>

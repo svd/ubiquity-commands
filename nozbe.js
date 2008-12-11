@@ -129,11 +129,13 @@ Nozbe.URL_ACTION_NEXT = "http://img.nozbe.com/action-next.png";
 Nozbe.renderTask = function (task) {
   var result = "";
   var style="";
+  var cl = "task";
 
   var lblId = "lbl-"+task.id;
   result = result + "<input type='checkbox' id='" + task.id + "'";
   if (task.done == 1) {
     style = "text-decoration: line-through; color:#aaaaaa;";
+	cl = cl + " task-done";
     result = result + " checked='true' disabled='true'";
   }
   var checkUrl = Nozbe.NOZBE_URLS.check
@@ -163,23 +165,21 @@ Nozbe.renderTask = function (task) {
   }
     
   result = result + "<label id='" + lblId + "' for='" + task.id + "'>";
-  result = result + "<span style='"+style+"'>" + task.name + "</span>";
+  result = result + "<span class='"+cl+"'>" + task.name + "</span>";
   result = result + "</label>";
 
-  result = result + "<font size='-2'>";
   if (task.project_name) {
-    result = result + "<font color='grey'> [" + task.project_name + "]</font>";
+    result = result + "<span class='project'> [" + task.project_name + "]</span>";
   }
 //  if (task.context_icon) {
 //    result = result + " <img src='http://img.nozbe.com/" + task.context_icon + "'/>";
 //  }
   if (task.context_name) {
-    result = result + "<font color='green'> @" + task.context_name + "</font>";
+    result = result + "<span class='context'> @" + task.context_name + "</span>";
   }
   if (task.time && task.time > 0) {
-    result = result + " <font color='blue'>(" + task.time + " min)</font>";
+    result = result + " <span class='time'>(" + task.time + " min)</span>";
   }
-  result = result + "</font>";
   return result;
 }
 
@@ -400,9 +400,10 @@ CmdUtils.CreateCommand({
       params["actions"] = data;
     }
     if (cmds < actions.length) {
-      params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
+      params["more"] = "" + (actions.length  - cmds) + " more available";
     }
-    var html = CmdUtils.renderTemplate(template, params);
+    //var html = CmdUtils.renderTemplate(template, params);
+	var html = CmdUtils.renderTemplate({file:"nozbe-list.html"}, params);
     //Utils.reportWarning("Rendered template:" + html);
     pblock.innerHTML = html
   },
