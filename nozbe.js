@@ -123,6 +123,81 @@ Nozbe.loadNozbeContexts = function(callback) {
     callback(contexts);
 }
 
+Nozbe.PREVIEW_STYLE = 
+	"<style type='text/css'>"
+	+ ".content {background: #ddddff; color:black; padding: 3px;}"
+	+ ".items {/*background-color: #111111; color: #FFFFFF; opacity: 1;*/}"
+	+ ".item {color: #000033;}"
+	+ ".xxsmall {font-size: xx-small;}"
+	+ ".xsmall {font-size: x-small;}"
+	+ ".small {font-size: small; }"
+	+ ".medium {font-size: medium; }"
+	+ ".large {font-size: large; font-weight: bold;}"
+	+ ".xlarge {font-size: x-large; font-weight: bold;}"
+	+ ".xxlarge {font-size: xx-large; font-weight: bold;}"
+	+ ".project > a:hover {text-decoration: underline;}"
+	+ ".count {color: #111111; font-size: smaller;}"
+	+ "</style>";
+Nozbe.ITEMS_TEMPLATE = 
+	Nozbe.PREVIEW_STYLE
+	+ "<div class='content'>"
+	+ "<div class='filter'>${filter}</div>"
+	+ "<div class='items'>${items}</div>"
+	+ "<div class='count'>Displayed ${matchCount} of ${count}</div>"
+	+ "</div>"
+	;
+Nozbe.SIZE_STYLES = ["medium","large","xlarge","xxlarge"];
+
+Nozbe.UNDONE_IMAGES = ["",
+	"http://img.nozbe.com/undone-1.gif",
+	"http://img.nozbe.com/undone-1.gif",
+	"http://img.nozbe.com/undone-3.gif"
+];
+
+Nozbe.preparePreviewParams = function (items, filter, url) {
+	filter = filter || "";
+	var params = {items: "", filter: "", count: 0, matchCount: 0};
+	var iData = "";
+	var filtered = [];
+
+	params.count = items.length;
+
+	//params.filter = "Filter: \"" + filter + "\"";
+
+	// Count items sizes
+	var max = 0;
+	for (var i in items) {
+	    var cnt = parseInt(items[i].count)
+		if (max < cnt) {
+			max = cnt;
+		}
+		if (filter.length <= 0 || items[i].name.match(filter, "i")) {
+			filtered.push(items[i]);
+		}
+	}
+
+	params.matchCount = filtered.length;
+	for (var i in filtered) {
+		var item = filtered[i];
+		cnt = parseInt(item.count);
+		var sizeIndex =  parseInt( (Nozbe.SIZE_STYLES.length-1) * cnt / max );
+		iData += "<span class='item " + Nozbe.SIZE_STYLES[sizeIndex] + "'>";
+		if (url) {
+			iData += "<a href='" + url + item.id + "'>";
+		}
+		iData += item.name + " (" + item.count + ")";
+		if (url) {
+			iData += "</a>";
+		}
+		iData += "</span>";
+		if (i < filtered.length -1) {
+			iData += " | ";
+		}
+	}
+	params.items = iData;
+	return params;
+}
+
 Nozbe.URL_ACTION = "http://img.nozbe.com/action.png";
 Nozbe.URL_ACTION_NEXT = "http://img.nozbe.com/action-next.png";
 
@@ -409,6 +484,42 @@ CmdUtils.CreateCommand({
   },
   execute: function(input) {
     CmdUtils.setSelection("You selected: "+input.html);
+  }
+});
+
+CmdUtils.CreateCommand({
+  name: "nozbe-projects",
+  author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
+  license: "GPL",
+  description: "List available Nozbe projects",
+  help: "Type nozbe-projects to get list of available projects. Click on the project name to open it in Nozbe",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+  takes: {"filter": noun_arb_text},
+  preview: function( pblock, input ) {
+	var items = Nozbe.getProjects();
+	var params = Nozbe.preparePreviewParams(items, input.text, "http://www.nozbe.com/account/projects/show-");
+    pblock.innerHTML = CmdUtils.renderTemplate(Nozbe.ITEMS_TEMPLATE, params);
+  },
+  execute: function(input) {
+  }
+});
+
+CmdUtils.CreateCommand({
+  name: "nozbe-contexts",
+  author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
+  license: "GPL",
+  description: "List available Nozbe contexts",
+  help: "Type nozbe-contexts to get list of available context. Click on the context name to open it in Nozbe",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+  takes: {"filter": noun_arb_text},
+  preview: function( pblock, input ) {
+	var items = Nozbe.getContexts();
+	var params = Nozbe.preparePreviewParams(items, input.text, "http://www.nozbe.com/account/contexts/show-");
+    pblock.innerHTML = CmdUtils.renderTemplate(Nozbe.ITEMS_TEMPLATE, params);
+  },
+  execute: function(input) {
   }
 });
 
