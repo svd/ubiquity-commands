@@ -440,6 +440,9 @@ CmdUtils.CreateCommand({
         + params["link"] + "'>Next actions</a>:";
       actions = Nozbe.getNextActions();
     }
+    if (!actions) {
+	    actions = {};
+    }
     for (var i in actions) {
       var a = actions[i];
       var text = Nozbe.renderTask(a);
