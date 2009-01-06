@@ -13,11 +13,13 @@ parameters for newaction
 - next - if sent, action will be added to "next actions" list
 */
   newaction: "http://www.nozbe.com/api/newaction",
+  newproject: "http://www.nozbe.com/api/newproject",
+  newpcontext: "http://www.nozbe.com/api/newcontext",
+  newnote: "http://www.nozbe.com/api/newnote",
 
   whatnext: "http://www.nozbe.com/api/actions/what-next",
   whatproject: "http://www.nozbe.com/api/actions/what-project",
   whatcontext: "http://www.nozbe.com/api/actions/what-context",
-  newnote: "http://www.nozbe.com/api/newnote/name-test/body-test/project_id-c4ca1/context_id-c4ca1/key-",
   contexts: "http://www.nozbe.com/api/contexts",
   check: "http://www.nozbe.com/api/check"
 };
@@ -97,7 +99,23 @@ Nozbe.getTasksInProject = function(project) {
 Nozbe.getTasksInContext = function(context) {
   return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.whatcontext, {id: context});
 }
-  
+
+Nozbe.createProject = function(name, description) {
+  var params = {name: name};
+  if (description) {
+	params["body"] = description;
+  }
+  return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.newproject, params);
+}
+
+Nozbe.createContext = function(name, description) {
+  var params = {name: name};
+  if (description) {
+	params["body"] = description;
+  }
+  return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.newcontext, params);
+}
+
 Nozbe.setAPIKey = function(key) {
     if (!Application.prefs.has(Nozbe.PREF_API_KEY)) {
         Application.prefs.setValue(Nozbe.PREF_API_KEY, key);
@@ -485,7 +503,7 @@ CmdUtils.CreateCommand({
     pblock.innerHTML = html
   },
   execute: function(input) {
-    CmdUtils.setSelection("You selected: "+input.html);
+    //CmdUtils.setSelection("You selected: "+input.html);
   }
 });
 
@@ -522,6 +540,40 @@ CmdUtils.CreateCommand({
     pblock.innerHTML = CmdUtils.renderTemplate(Nozbe.ITEMS_TEMPLATE, params);
   },
   execute: function(input) {
+  }
+});
+
+CmdUtils.CreateCommand({
+  name: "nozbe-add-project",
+  author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
+  license: "GPL",
+  description: "Create new project",
+  help: "Type nozbe-padd to create new project in Nozbe",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+  takes: {"name": noun_arb_text},
+  modifiers: {
+    desc: noun_arb_text
+  },
+
+  preview: function( pblock, name, mods ) {
+    var template = "Will create a new project with name \"<b>${name}</b>\"";
+	if (mods.desc.text) {
+	  template += " and description \"<b>${desc}</b>\"";
+	}
+    pblock.innerHTML = CmdUtils.renderTemplate(template, {"name": name.text, "desc": mods.desc.text});
+  },
+  execute: function(name, mods) {
+    if (name.text.length < 1) {
+	  displayMessage("Please specify a project name");
+	  return;
+	}
+    var desc = null;
+	if (mods.desc.text && mods.desc.text.length > 0) {
+	  desc = mods.desc.text;
+	}
+	var resp = Nozbe.createProject(name.text, desc);
+	displayMessage("Project \"" + name.text + "\" has been created");
   }
 });
 
