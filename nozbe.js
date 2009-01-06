@@ -24,7 +24,7 @@ parameters for newaction
 
 Nozbe.PREF_API_KEY = "nozbe.api.key";
 
-Nozbe.PREVIEW_COMMAND_LIMIT = 10;
+Nozbe.PREVIEW_COMMAND_LIMIT = 15;
 
 Nozbe._projects = null;
 Nozbe._contexts = null;
