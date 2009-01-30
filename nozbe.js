@@ -333,6 +333,7 @@ noun_nozbe_context = {
 
 CmdUtils.CreateCommand({
     name: "nozbe-add",
+	synonyms: ["task", "do"],
     takes: {
         action: noun_arb_text
     },
@@ -422,6 +423,7 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe-list",
+  synonyms: ["list","what-next"],
 /*  homepage: "http://example.com/", */
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
@@ -517,6 +519,7 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe-projects",
+  synonyms: ["projects"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "List available Nozbe projects",
@@ -535,6 +538,7 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe-contexts",
+  synonyms: ["contexts"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "List available Nozbe contexts",
@@ -553,6 +557,7 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe-add-project",
+  synonyms: ["new-project"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "Create new project",
