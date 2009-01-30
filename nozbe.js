@@ -14,7 +14,7 @@ parameters for newaction
 */
   newaction: "http://www.nozbe.com/api/newaction",
   newproject: "http://www.nozbe.com/api/newproject",
-  newpcontext: "http://www.nozbe.com/api/newcontext",
+  newcontext: "http://www.nozbe.com/api/newcontext",
   newnote: "http://www.nozbe.com/api/newnote",
 
   whatnext: "http://www.nozbe.com/api/actions/what-next",
@@ -585,6 +585,43 @@ CmdUtils.CreateCommand({
 	Nozbe.resetCaches();
   }
 });
+
+/*
+CmdUtils.CreateCommand({
+  name: "nozbe-add-context",
+  author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
+  license: "GPL",
+  description: "Create new context in Nozbe",
+  help: "Type nozbe-add-context to create new context in Nozbe",
+  icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+  takes: {"name": noun_arb_text},
+  modifiers: {
+    desc: noun_arb_text
+  },
+
+  preview: function( pblock, name, mods ) {
+    var template = "Will create a new context with name \"<b>${name}</b>\"";
+	if (mods.desc.text) {
+	  template += " and description \"<b>${desc}</b>\"";
+	}
+    pblock.innerHTML = CmdUtils.renderTemplate(template, {"name": name.text, "desc": mods.desc.text});
+  },
+  execute: function(name, mods) {
+    if (name.text.length < 1) {
+	  displayMessage("Please specify a context name");
+	  return;
+	}
+    var desc = null;
+	if (mods.desc.text && mods.desc.text.length > 0) {
+	  desc = mods.desc.text;
+	}
+	var resp = Nozbe.createContext(name.text, desc);
+	displayMessage("Context \"" + name.text + "\" has been created");
+	Nozbe.resetCaches();
+  }
+});
+*/
 
 CmdUtils.CreateCommand({
   name: "nozbe-reset",
