@@ -88,6 +88,11 @@ Nozbe.getContexts = function() {
     return Nozbe._contexts;
 }
 
+Nozbe.resetCaches = function() {
+  Nozbe._projects = null;
+  Nozbe._contexts = null;
+}
+
 Nozbe.getNextActions = function() {
   return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.whatnext);
 }
@@ -105,6 +110,7 @@ Nozbe.createProject = function(name, description) {
   if (description) {
 	params["body"] = description;
   }
+  Nozbe._projects = null;
   return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.newproject, params);
 }
 
@@ -113,6 +119,7 @@ Nozbe.createContext = function(name, description) {
   if (description) {
 	params["body"] = description;
   }
+  Nozbe._contexts = null;
   return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.newcontext, params);
 }
 
@@ -203,7 +210,7 @@ Nozbe.preparePreviewParams = function (items, filter, url) {
 		if (url) {
 			iData += "<a href='" + url + item.id + "'>";
 		}
-		iData += item.name + " (" + item.count + ")";
+		iData += item.name + "&nbsp;(" + item.count + ")";
 		if (url) {
 			iData += "</a>";
 		}
@@ -382,6 +389,7 @@ CmdUtils.CreateCommand({
 
         var result = Nozbe.callNozbeAPI(updateUrl);
         displayMessage("Nozbe action created: " + statusText.text);
+		Nozbe.resetCaches();
     }
 
 });
@@ -574,6 +582,7 @@ CmdUtils.CreateCommand({
 	}
 	var resp = Nozbe.createProject(name.text, desc);
 	displayMessage("Project \"" + name.text + "\" has been created");
+	Nozbe.resetCaches();
   }
 });
 
@@ -591,8 +600,7 @@ CmdUtils.CreateCommand({
     pblock.innerHTML = CmdUtils.renderTemplate(template, {});
   },
   execute: function(input) {
-    Nozbe._projects = null;
-    Nozbe._contexts = null;
-    displayMessage("Nozbe: cache reset");
+	Nozbe.resetCaches();
+    displayMessage("Nozbe: caches reset");
   }
 });
