@@ -123,6 +123,14 @@ Nozbe.createContext = function(name, description) {
   return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.newcontext, params);
 }
 
+Nozbe.checkTask = function(id) {
+	if (id) {
+		return Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.check, {ids: id});
+	} else {
+		return null;
+	}
+}
+
 Nozbe.setAPIKey = function(key) {
     if (!Application.prefs.has(Nozbe.PREF_API_KEY)) {
         Application.prefs.setValue(Nozbe.PREF_API_KEY, key);
@@ -226,40 +234,42 @@ Nozbe.preparePreviewParams = function (items, filter, url) {
 Nozbe.URL_ACTION = "http://img.nozbe.com/action.png";
 Nozbe.URL_ACTION_NEXT = "http://img.nozbe.com/action-next.png";
 
+// TODO: define styles for task list
+Nozbe.TASKLIST_STYLE = 
+	"<style type='text/css'>"
+	+ ".content {background: #ddddff; color:black; padding: 3px;}"
+	+ ".items {/*background-color: #111111; color: #FFFFFF; opacity: 1;*/}"
+	+ ".item {color: #000033;}"
+	+ ".xxsmall {font-size: xx-small;}"
+	+ ".xsmall {font-size: x-small;}"
+	+ ".small {font-size: small; }"
+	+ ".medium {font-size: medium; }"
+	+ ".large {font-size: large; font-weight: bold;}"
+	+ ".xlarge {font-size: x-large; font-weight: bold;}"
+	+ ".xxlarge {font-size: xx-large; font-weight: bold;}"
+	+ ".project > a:hover {text-decoration: underline;}"
+	+ ".count {color: #111111; font-size: smaller;}"
+	+ "</style>";
+
 Nozbe.renderTask = function (task) {
+
   var result = "";
   var style="";
 
   var lblId = "lbl-"+task.id;
-  result = result + "<input type='checkbox' id='" + task.id + "'";
+  result = result + "<input type='checkbox' class='task-checkbox' id='" + task.id + "'";
   if (task.done == 1) {
     style = "text-decoration: line-through; color:#aaaaaa;";
     result = result + " checked='true' disabled='true'";
   }
-  var checkUrl = Nozbe.NOZBE_URLS.check
-      + "/ids-" + task.id
-      + "/key-" + Nozbe.getAPIKey();
-  var onChangeJS = "javascript:var r=new XMLHttpRequest();"
-      + "r.onreadystatechange=function(){"
-      +   "if(r.readyState  == 4){"
-      +     "if(r.status  == 200){"
-      +       "var e=document.getElementById(\""+lblId+"\");"
-      +       "e.style.color=\"#aaaaaa\";e.style.textDecoration=\"line-through\";"
-      +     "}"
-      +   "}"
-      + "};"
-      + "e=document.getElementById(\""+task.id+"\");e.disabled=\"true\";"      
-      + "r.open(\"GET\", \""+ checkUrl +"\", true);"
-      + "r.send(null);"
-      ;
   
-  result = result + " onchange='" + onChangeJS + "'";
+  //result = result + " onchange='" + onChangeJS + "'";
   result = result + "/>";
 
   if (task.next) {
-    result = result + "<img src='http://img.nozbe.com/action-next.png'/>";
+    result = result + "<img src='" + Nozbe.URL_ACTION_NEXT + "'/>";
   } else {
-    result = result + "<img src='http://img.nozbe.com/action.png'/>"
+    result = result + "<img src='" + Nozbe.URL_ACTION + "'/>"
   }
     
   result = result + "<label id='" + lblId + "' for='" + task.id + "'>";
@@ -533,8 +543,20 @@ CmdUtils.CreateCommand({
       params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
     }
     var html = CmdUtils.renderTemplate(template, params);
-    //Utils.reportWarning("Rendered template:" + html);
-    pblock.innerHTML = html
+    pblock.innerHTML = html;
+	
+	var J = jQuery;
+	J(pblock).find(".task-checkbox").change(function() {
+		//Utils.reportWarning("Hello from jQuery:" + this.id);
+		var res = Nozbe.checkTask(this.id);
+		if (res && res.response == "ok") {
+		  J(pblock).find("label#lbl-"+this.id).css({color:"#aaaaaa", textDecoration:"line-through"});
+		  J(this).attr("disabled","disabled");
+		} else {
+		  J(this).attr("checked", "");
+		  displayMessage("Failed to mark task as done: " + this.id);
+		}
+	});
   },
   execute: function(input) {
     //CmdUtils.setSelection("You selected: "+input.html);
