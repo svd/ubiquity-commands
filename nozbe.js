@@ -285,19 +285,13 @@ Nozbe.renderTask = function (task) {
 
 noun_nozbe_project = {
     _name: "project",
-    _projects: null,
-
-    callback: function(projects) {
-        noun_nozbe_project._projects = projects;
-    },
 
     suggest: function(text, html) {
-        if (noun_nozbe_project._projects == null) {
-            Nozbe.loadNozbeProjects(noun_nozbe_project.callback);
-        }
-
         var suggestions = [];
-        var p = noun_nozbe_project._projects;
+        var p = Nozbe.getProjects();
+		if (!p) {
+			return;
+		}
         for (var i in p) {
             if (p[i].name.match(text, "i")) {
                 suggestions.push(CmdUtils.makeSugg(p[i].name + " (" + p[i].count + ")", null, p[i].id));
@@ -309,19 +303,12 @@ noun_nozbe_project = {
 
 noun_nozbe_context = {
     _name: "context",
-    _contexts: null,
-
-    callback: function(contexts) {
-        noun_nozbe_project._contexts = contexts;
-    },
-
     suggest: function(text, html) {
-        if (noun_nozbe_project._contexts == null || true) {
-            Nozbe.loadNozbeContexts(noun_nozbe_context.callback);
-        }
-
         var suggestions = [];
-        var c = noun_nozbe_project._contexts;
+        var c = Nozbe.getContexts();
+		if (!c) {
+			return;
+		}
         for (var i in c) {
             if (c[i].name.match(text, "i")) {
                 suggestions.push(CmdUtils.makeSugg(c[i].name + " (" + c[i].count + ")", null, c[i].id));
