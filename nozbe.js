@@ -75,7 +75,7 @@ Nozbe.callNozbeAPI = function(url, params) {
 Nozbe.getProjects = function() {
   if (Nozbe._projects == null) {
     Nozbe._projects = Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.projects);
-    //CmdUtils.log("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
+    CmdUtils.log("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
     displayMessage("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
   }
   return Nozbe._projects;
@@ -393,6 +393,30 @@ CmdUtils.CreateCommand({
 		Nozbe.resetCaches();
     }
 
+});
+
+CmdUtils.CreateCommand({
+    name: "nozbe-complete",
+	synonyms: ["done"],
+
+	takes: {"filter": noun_arb_text},
+	modifiers: {
+		in: noun_nozbe_project,
+		at: noun_nozbe_context
+	},
+
+
+    author: {
+        name: "Sviatoslav Sviridov",
+        email: "sviridov[at]gmail.com"
+    },
+    license: "GPL",
+    description: "Mark a task as complete.",
+    help: "Type nozbe-setkey . Check your key at http://www.nozbe.com/account/extras",
+    icon: "http://secure.nozbe.com/img/nozbe-icon.png",
+
+    execute: function(key) {
+    }
 });
 
 CmdUtils.CreateCommand({
