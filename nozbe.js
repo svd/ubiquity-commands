@@ -295,19 +295,13 @@ Nozbe.renderTask = function (task) {
 
 noun_nozbe_project = {
     _name: "project",
-    _projects: null,
-
-    callback: function(projects) {
-        noun_nozbe_project._projects = projects;
-    },
 
     suggest: function(text, html) {
-        if (noun_nozbe_project._projects == null) {
-            Nozbe.loadNozbeProjects(noun_nozbe_project.callback);
-        }
-
         var suggestions = [];
-        var p = noun_nozbe_project._projects;
+        var p = Nozbe.getProjects();
+		if (!p) {
+			return;
+		}
         for (var i in p) {
             if (p[i].name.match(text, "i")) {
                 suggestions.push(CmdUtils.makeSugg(p[i].name + " (" + p[i].count + ")", null, p[i].id));
@@ -319,19 +313,12 @@ noun_nozbe_project = {
 
 noun_nozbe_context = {
     _name: "context",
-    _contexts: null,
-
-    callback: function(contexts) {
-        noun_nozbe_project._contexts = contexts;
-    },
-
     suggest: function(text, html) {
-        if (noun_nozbe_project._contexts == null || true) {
-            Nozbe.loadNozbeContexts(noun_nozbe_context.callback);
-        }
-
         var suggestions = [];
-        var c = noun_nozbe_project._contexts;
+        var c = Nozbe.getContexts();
+		if (!c) {
+			return;
+		}
         for (var i in c) {
             if (c[i].name.match(text, "i")) {
                 suggestions.push(CmdUtils.makeSugg(c[i].name + " (" + c[i].count + ")", null, c[i].id));
@@ -357,7 +344,7 @@ CmdUtils.CreateCommand({
         email: "sviridov[at]gmail.com"
     },
     license: "GPL",
-    description: "Adds a task to your nozbe account",
+    description: "Adds a new task to Nozbe",
     icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
     _urls: Nozbe.NOZBE_URLS,
@@ -422,10 +409,11 @@ CmdUtils.CreateCommand({
     },
     license: "GPL",
     description: "Mark a task as complete.",
-    help: "Type nozbe-setkey . Check your key at http://www.nozbe.com/account/extras",
+    //help: "",
     icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
     execute: function(key) {
+		displayMessage("Task nozbe-complete is not implemented yet");
     }
 });
 
@@ -440,8 +428,8 @@ CmdUtils.CreateCommand({
         email: "sviridov[at]gmail.com"
     },
     license: "GPL",
-    description: "Set your Nozbe API key. Check your key at http://www.nozbe.com/account/extras",
-    help: "Type nozbe-setkey . Check your key at http://www.nozbe.com/account/extras",
+    description: "Set your Nozbe API key.",
+    help: "Type nozbe-setkey <nozbe-api_key>. Check your key at <a href='http://www.nozbe.com/account/extras'>http://www.nozbe.com/account/extras</a>",
     icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
     execute: function(key) {
@@ -565,7 +553,7 @@ CmdUtils.CreateCommand({
 
 CmdUtils.CreateCommand({
   name: "nozbe-projects",
-  synonyms: ["projects"],
+  //synonyms: ["projects"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "List available Nozbe projects",
@@ -606,8 +594,8 @@ CmdUtils.CreateCommand({
   synonyms: ["new-project"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
-  description: "Create new project",
-  help: "Type nozbe-padd to create new project in Nozbe",
+  description: "Create new project in Nozbe",
+  help: "Type nozbe-add-project to create new project in Nozbe",
   icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
   takes: {"name": noun_arb_text},
@@ -615,7 +603,7 @@ CmdUtils.CreateCommand({
     desc: noun_arb_text
   },
 
-  preview: function( pblock, name, mods ) {
+  preview1: function( pblock, name, mods ) {
     var template = "Will create a new project with name \"<b>${name}</b>\"";
 	if (mods.desc.text) {
 	  template += " and description \"<b>${desc}</b>\"";
@@ -679,11 +667,11 @@ CmdUtils.CreateCommand({
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "Clear cached lists of projects and contexts. This will force projects and contexts to be reloaded next time.",
-  help: "Type nozbe-reset to clear caches",
+  help: "Execute nozbe-reset command without parameters (any parameters are ignored).",
   icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
   /*takes: {"input": noun_arb_text},*/
-  preview: function( pblock, input ) {
+  preview1: function( pblock, input ) {
     var template = "Clear cached lists of projects and contexts.";
     pblock.innerHTML = CmdUtils.renderTemplate(template, {});
   },
