@@ -257,9 +257,11 @@ Nozbe.renderTask = function (task) {
   result = result + "/>";
 
   if (task.next) {
-    result = result + "<img src='http://img.nozbe.com/action-next.png'/>";
+    //result = result + "<img src='http://img.nozbe.com/action-next.png'/>";
+    result = result + "&nbsp;<b><font color='red'>!</font></b>&nbsp;";
   } else {
-    result = result + "<img src='http://img.nozbe.com/action.png'/>"
+    //result = result + "<img src='http://img.nozbe.com/action.png'/>"
+    result = result + "&nbsp;&nbsp;&nbsp;";
   }
     
   result = result + "<label id='" + lblId + "' for='" + task.id + "'>";
@@ -268,16 +270,16 @@ Nozbe.renderTask = function (task) {
 
   result = result + "<font size='-2'>";
   if (task.project_name) {
-    result = result + "<font color='grey'> [" + task.project_name + "]</font>";
+	// color: lightgrey  = #C0C0C0
+    result = result + "<font color='lightgrey'> [" + task.project_name + "]</font>";
   }
-//  if (task.context_icon) {
-//    result = result + " <img src='http://img.nozbe.com/" + task.context_icon + "'/>";
-//  }
   if (task.context_name) {
-    result = result + "<font color='green'> @" + task.context_name + "</font>";
+	// color: pastel-green
+    result = result + "<font color='#00FF00'> @" + task.context_name + "</font>";
   }
   if (task.time && task.time > 0) {
-    result = result + " <font color='blue'>(" + task.time + " min)</font>";
+	// color: turquoise
+    result = result + " <font color='#00FFFF'>(" + task.time + " min)</font>";
   }
   result = result + "</font>";
   return result;
@@ -450,7 +452,8 @@ CmdUtils.CreateCommand({
   },
 
   preview: function( pblock, input, mods) {
-    var style = "style='background: #ddddff; color:black;'";
+    //var style = "style='background: #ddddff; color:black;'";
+    var style = "style=''";
     var template = "<div " + style + "><b>${title}</b><div><font>${actions}</font></div><div>${more}</div></div>"
         + "</body></html>";
     var params = {title:"", actions:"No actions found", more:"", link:""};
@@ -465,7 +468,8 @@ CmdUtils.CreateCommand({
     if (modProject && modProject.data) {
       params["link"] = "http://www.nozbe.com/account/projects/show-" + modProject.data ;
       params["title"] = "Actions in project: "
-        + "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
+        //+ "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
+        + "<a href='" + params["link"] + "'>"
         + modProject.text + "</a>";
       actions = Nozbe.getTasksInProject(modProject.data);
     } else if (modContext && modContext.data) {
