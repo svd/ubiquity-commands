@@ -150,7 +150,7 @@ Nozbe.loadNozbeContexts = function(callback) {
 
 Nozbe.PREVIEW_STYLE = 
 	"<style type='text/css'>"
-	+ ".content {background: #ddddff; color:black; padding: 3px;}"
+	+ ".content {}"
 	+ ".items {/*background-color: #111111; color: #FFFFFF; opacity: 1;*/}"
 	+ ".item {color: #000033;}"
 	+ ".xxsmall {font-size: xx-small;}"
