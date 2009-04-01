@@ -261,7 +261,7 @@ Nozbe.renderTask = function (task) {
     result = result + "&nbsp;<b><font color='red'>!</font></b>&nbsp;";
   } else {
     //result = result + "<img src='http://img.nozbe.com/action.png'/>"
-    result = result + "&nbsp;&nbsp;&nbsp;";
+    result = result + "&nbsp;<b><font color='#707070'>!</font></b>&nbsp;";
   }
     
   result = result + "<label id='" + lblId + "' for='" + task.id + "'>";
