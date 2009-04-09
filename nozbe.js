@@ -169,7 +169,7 @@ Nozbe.PREVIEW_STYLE =
 	+ ".xlarge {font-size: x-large; font-weight: bold;}"
 	+ ".xxlarge {font-size: xx-large; font-weight: bold;}"
 	+ ".project > a:hover {text-decoration: underline;}"
-	+ ".count {color: #111111; font-size: smaller;}"
+	+ ".count {color: #E0E0E0; font-size: x-small;}"
 	+ "</style>";
 Nozbe.ITEMS_TEMPLATE = 
 	Nozbe.PREVIEW_STYLE
@@ -179,7 +179,7 @@ Nozbe.ITEMS_TEMPLATE =
 	+ "<div class='count'>Displayed ${matchCount} of ${count}</div>"
 	+ "</div>"
 	;
-Nozbe.SIZE_STYLES = ["medium","large","xlarge","xxlarge"];
+Nozbe.SIZE_STYLES = ["small","medium","large","xlarge","xxlarge"];
 
 Nozbe.UNDONE_IMAGES = ["",
 	"http://img.nozbe.com/undone-1.gif",
