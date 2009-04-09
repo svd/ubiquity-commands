@@ -26,7 +26,7 @@ parameters for newaction
 
 Nozbe.PREF_API_KEY = "nozbe.api.key";
 
-Nozbe.PREVIEW_COMMAND_LIMIT = 15;
+Nozbe.PREVIEW_COMMAND_LIMIT = 20;
 
 Nozbe._projects = null;
 Nozbe._contexts = null;
@@ -248,7 +248,7 @@ Nozbe.TASKLIST_STYLE =
 	+ ".xlarge {font-size: x-large; font-weight: bold;}"
 	+ ".xxlarge {font-size: xx-large; font-weight: bold;}"
 	+ ".project > a:hover {text-decoration: underline;}"
-	+ ".count {color: #111111; font-size: smaller;}"
+	+ ".count {color: #E0E0E0; font-size: x-small;}"
 	+ "</style>";
 
 Nozbe.renderTask = function (task) {
@@ -461,13 +461,16 @@ CmdUtils.CreateCommand({
   preview: function( pblock, input, mods) {
     //var style = "style='background: #ddddff; color:black;'";
     var style = "style=''";
-    var template = "<div " + style + "><b>${title}</b><div><font>${actions}</font></div><div>${more}</div></div>"
-        + "</body></html>";
+    var template = Nozbe.TASKLIST_STYLE
+		+ "<div>"
+		+ "<b>${title}</b>"
+		+ "<div>${actions}</div>"
+		+ "<div class='count'>Displayed ${matchCount} of ${count}</div>"
+		+ "<div>&nbsp;</div>" //workaround to see last line when scrollbar is displayed
+		+ "</div>";
     var params = {title:"", actions:"No actions found", more:"", link:""};
     var actions = {};
     var data = "";
-    var dataDone = [];
-    var cmds = 0;
     
     var modProject = mods["in"];
     var modContext = mods["at"];
@@ -494,43 +497,38 @@ CmdUtils.CreateCommand({
     if (!actions) {
 	    actions = {};
     }
+    // Group all action into  three categories: next, normal and done.
+	var aNext = [], aNormal = [], aDone = [];
     for (var i in actions) {
-      var a = actions[i];
-      var text = Nozbe.renderTask(a);
-      if (input.text.length > 0) {
-        if (a.name.match(input.text, "i")) {
-          if (a.done == 1) {
-            dataDone[dataDone.length] = "<div>" + text + "</div>";
-          } else {
-            data = data + "<div>" + text + "</div>";
-            cmds += 1;
-          }
-        }
-      } else {
-        if (a.done == 1) {
-          dataDone[dataDone.length] = "<div>" + text + "</div>";
-        } else {
-          data = data + "<div>" + text + "</div>";
-          cmds += 1;
-        }
-      }
-      if (cmds >= Nozbe.PREVIEW_COMMAND_LIMIT) {
-        break;
-      }
+		var a = actions[i];
+		if (input.text.length <= 0 || a.name.match(input.text, "i")) {
+			if (a.done == 1) {
+				aDone.push(a);
+			} else if (a.next) {
+				aNext.push(a);
+			} else {
+				aNormal.push(a);
+			}
+		}
     }
-    for (var i in dataDone) {
-      if (cmds >= Nozbe.PREVIEW_COMMAND_LIMIT) {
-        break;
-      }
-      data += dataDone[i];
-      cmds += 1;
-    }
+    var cmds = 0;
+	for (var i in aNext) {
+		data += "<div>" + Nozbe.renderTask(aNext[i]) + "</div>";
+		cmds += 1;
+	}
+	for (i in aNormal) {
+		data += "<div>" + Nozbe.renderTask(aNormal[i]) + "</div>";
+		cmds += 1;
+	}
+	for (i in aDone) {
+		data += "<div>" + Nozbe.renderTask(aDone[i]) + "</div>";
+		cmds += 1;
+	}
     if (data) {
       params["actions"] = data;
     }
-    if (cmds < actions.length) {
-      params["more"] = "<font size='-2'>" + (actions.length  - cmds) + " more available</font>";
-    }
+	params["matchCount"] = cmds;
+	params["count"] = actions.length;
     var html = CmdUtils.renderTemplate(template, params);
     pblock.innerHTML = html;
 	
