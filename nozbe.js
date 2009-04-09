@@ -76,7 +76,6 @@ Nozbe.getProjects = function() {
   if (Nozbe._projects == null) {
     Nozbe._projects = Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.projects);
     CmdUtils.log("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
-    displayMessage("Loaded Nozbe projects (" + Nozbe._projects.length + ")");
   }
   return Nozbe._projects;
 }
@@ -84,6 +83,7 @@ Nozbe.getProjects = function() {
 Nozbe.getContexts = function() {
     if (Nozbe._contexts == null) {
         Nozbe._contexts = Nozbe.callNozbeAPI(Nozbe.NOZBE_URLS.contexts);
+        CmdUtils.log("Loaded Nozbe contexts (" + Nozbe._contexts.length + ")");
     }
     return Nozbe._contexts;
 }
