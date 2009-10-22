@@ -21,7 +21,11 @@ parameters for newaction
   whatproject: "http://www.nozbe.com/api/actions/what-project",
   whatcontext: "http://www.nozbe.com/api/actions/what-context",
   contexts: "http://www.nozbe.com/api/contexts",
-  check: "http://www.nozbe.com/api/check"
+  check: "http://www.nozbe.com/api/check",
+  
+  UI_nextActions: "http://www.nozbe.com/account/new#next",
+  UI_projects: "http://www.nozbe.com/account/new#project_",
+  UI_contexts: "http://www.nozbe.com/account/new#context_"
 };
 
 Nozbe.PREF_API_KEY = "nozbe.api.key";
@@ -328,8 +332,9 @@ noun_nozbe_context = {
 }
 
 CmdUtils.CreateCommand({
-    name: "nozbe-add",
-	synonyms: ["task", "do"],
+    names: ["nozbe-add", "task", "do"],
+	
+	/*
     takes: {
         action: noun_arb_text
     },
@@ -337,7 +342,11 @@ CmdUtils.CreateCommand({
         to: noun_nozbe_project,
         at: noun_nozbe_context
     },
-
+	*/
+	arguments: [ {role: 'object', nountype: noun_arb_text, label: 'action'},
+				 {role: 'goal', nountype: noun_nozbe_project},
+				 {role: 'location', nountype: noun_nozbe_context}],
+	
     author: {
         name: "Sviatoslav Sviridov",
         email: "sviridov[at]gmail.com"
@@ -354,46 +363,45 @@ CmdUtils.CreateCommand({
         }
     },
 
-    preview: function(pblock, action) {
-        pblock.innerHTML = "Will add action to Nozbe: " + action.text;
+    preview: function(pblock, args) {
+        pblock.innerHTML = "Will add action to Nozbe: " + args.object.text;
     },
 
-    execute: function(statusText, mods) {
-        if (statusText.text.length < 1) {
+    execute: function(args) {
+        if (args.object.text.length < 1) {
             displayMessage("Nozbe requires a task to be entered");
             return;
         }
           
         var updateUrl = this._urls.newaction;
-        updateUrl = updateUrl + "/name-" + encodeURIComponent(statusText.text);
+        updateUrl = updateUrl + "/name-" + encodeURIComponent(args.object.text);
 
-        if (mods.to.data) {
-            updateUrl = updateUrl + "/project_id-" + mods.to.data;
+        if (args.goal.data) {
+            updateUrl = updateUrl + "/project_id-" + args.goal.data;
         } else {
             // Nozbe requires project_id to be specified always
             var projects = Nozbe.getProjects();
             updateUrl = updateUrl + "/project_id-" + projects[0].id;
         }
 
-        if (mods.at.data) {
-            updateUrl = updateUrl + "/context_id-" + mods.at.data;
+        if (args.location.data) {
+            updateUrl = updateUrl + "/context_id-" + args.location.data;
         }
 
         var updateParams = {
             source: "ubiquity",
-            status: statusText.text
+            status: args.object.text
         };
 
         var result = Nozbe.callNozbeAPI(updateUrl);
-        displayMessage("Nozbe action created: " + statusText.text);
+        displayMessage("Nozbe action created: " + args.object.text);
 		Nozbe.resetCaches();
     }
 
 });
 
 CmdUtils.CreateCommand({
-    name: "nozbe-complete",
-	synonyms: ["done"],
+    names: ["nozbe-complete", "done"],
 
 	takes: {"filter": noun_arb_text},
 	modifiers: {
@@ -417,7 +425,7 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-    name: "nozbe-setkey",
+    names: ["nozbe-setkey"],
     takes: {
         key: noun_arb_text
     },
@@ -443,8 +451,8 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe-list",
-  synonyms: ["list","what-next"],
+  names: ["nozbe-list", "what-next"],
+
 /*  homepage: "http://example.com/", */
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
@@ -452,13 +460,16 @@ CmdUtils.CreateCommand({
   help: "Type nozbe-list to get list of next actions",
   icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
-  takes: {"filter": noun_arb_text},
-  modifiers: {
+  //takes: {"filter": noun_arb_text},
+  /*modifiers: {
     in: noun_nozbe_project,
     at: noun_nozbe_context
-  },
+  },*/
+  arguments: [	{role: 'object', nountype: noun_arb_text, label: 'filter'},
+				{role: 'source', nountype: noun_nozbe_project},
+				{role: 'location', nountype: noun_nozbe_context} ],
 
-  preview: function( pblock, input, mods) {
+  preview: function( pblock, args) {
     //var style = "style='background: #ddddff; color:black;'";
     var style = "style=''";
     var template = Nozbe.TASKLIST_STYLE
@@ -472,24 +483,24 @@ CmdUtils.CreateCommand({
     var actions = {};
     var data = "";
     
-    var modProject = mods["in"];
-    var modContext = mods["at"];
+    var modProject = args.source;
+    var modContext = args.location;
 
     if (modProject && modProject.data) {
-      params["link"] = "http://www.nozbe.com/account/projects/show-" + modProject.data ;
+      params["link"] = Nozbe.NOZBE_URLS.UI_projects + modProject.data ;
       params["title"] = "Actions in project: "
         //+ "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
         + "<a href='" + params["link"] + "'>"
         + modProject.text + "</a>";
       actions = Nozbe.getTasksInProject(modProject.data);
     } else if (modContext && modContext.data) {
-      params["link"] = "http://www.nozbe.com/account/contexts/show-" + modContext.data ;
+      params["link"] = Nozbe.NOZBE_URLS.UI_contexts + modContext.data ;
       params["title"] = "Actions in context: "
         + "<a style='text-decoration: underline;' href='" + params["link"] + "'>"
         + modContext.text + "</a>";
       actions = Nozbe.getTasksInContext(modContext.data);
     } else {
-      params["link"] = "http://www.nozbe.com/account/next";
+      params["link"] = Nozbe.NOZBE_URLS.UI_nextActions;
       params["title"] = "<a style='text-decoration: underline;' href='"
         + params["link"] + "'>Next actions</a>:";
       actions = Nozbe.getNextActions();
@@ -501,7 +512,7 @@ CmdUtils.CreateCommand({
 	var aNext = [], aNormal = [], aDone = [];
     for (var i in actions) {
 		var a = actions[i];
-		if (input.text.length <= 0 || a.name.match(input.text, "i")) {
+		if (args.object.text.length <= 0 || a.name.match(args.object.text, "i")) {
 			if (a.done == 1) {
 				aDone.push(a);
 			} else if (a.next) {
@@ -545,24 +556,27 @@ CmdUtils.CreateCommand({
 		}
 	});
   },
-  execute: function(input) {
+  execute: function(args) {
     //CmdUtils.setSelection("You selected: "+input.html);
   }
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe-projects",
-  //synonyms: ["projects"],
+  names: ["nozbe-projects"],
+
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "List available Nozbe projects",
   help: "Type nozbe-projects to get list of available projects. Click on the project name to open it in Nozbe",
   icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
-  takes: {"filter": noun_arb_text},
-  preview: function( pblock, input ) {
+  //takes: {"filter": noun_arb_text},
+  arguments: [{role: 'object', nountype: noun_arb_text, label: 'filter'}],
+  
+  preview: function( pblock, args ) {
 	var items = Nozbe.getProjects();
-	var params = Nozbe.preparePreviewParams(items, input.text, "http://www.nozbe.com/account/projects/show-");
+	//var params = Nozbe.preparePreviewParams(items, args.object, "http://www.nozbe.com/account/projects/show-");
+	var params = Nozbe.preparePreviewParams(items, args.object.text, "http://www.nozbe.com/account/new#project_");
     pblock.innerHTML = CmdUtils.renderTemplate(Nozbe.ITEMS_TEMPLATE, params);
   },
   execute: function(input) {
@@ -570,18 +584,21 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe-contexts",
-  synonyms: ["contexts"],
+  names: ["nozbe-contexts", "contexts"],
+
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "List available Nozbe contexts",
   help: "Type nozbe-contexts to get list of available context. Click on the context name to open it in Nozbe",
   icon: "http://secure.nozbe.com/img/nozbe-icon.png",
 
-  takes: {"filter": noun_arb_text},
-  preview: function( pblock, input ) {
+  //takes: {"filter": noun_arb_text},
+  arguments: [{role: 'object', nountype: noun_arb_text, label: 'filter'}],
+  
+  preview: function( pblock, args ) {
 	var items = Nozbe.getContexts();
-	var params = Nozbe.preparePreviewParams(items, input.text, "http://www.nozbe.com/account/contexts/show-");
+	//var params = Nozbe.preparePreviewParams(items, args.object.text, "http://www.nozbe.com/account/contexts/show-");
+	var params = Nozbe.preparePreviewParams(items, args.object.text, "http://www.nozbe.com/account/new#context_");
     pblock.innerHTML = CmdUtils.renderTemplate(Nozbe.ITEMS_TEMPLATE, params);
   },
   execute: function(input) {
@@ -589,8 +606,8 @@ CmdUtils.CreateCommand({
 });
 
 CmdUtils.CreateCommand({
-  name: "nozbe-add-project",
-  synonyms: ["new-project"],
+  names: ["nozbe-add-project", "new-project"],
+
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "Create new project in Nozbe",
@@ -662,7 +679,7 @@ CmdUtils.CreateCommand({
 */
 
 CmdUtils.CreateCommand({
-  name: "nozbe-reset",
+  names: ["nozbe-reset"],
   author: {name: "Sviatoslav Sviridov",email: "sviridov[at]gmail.com"},
   license: "GPL",
   description: "Clear cached lists of projects and contexts. This will force projects and contexts to be reloaded next time.",
